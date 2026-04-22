@@ -1,0 +1,50 @@
+# ══════════════════════════════════════════
+# EquiGrade — Root .gitignore
+# ══════════════════════════════════════════
+
+# ── Environment & Secrets ────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+
+# ── Python ───────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+*.so
+
+# ── Node / Frontend ─────────────────────
+node_modules/
+.next/
+out/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# ── IDE ──────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Docker ───────────────────────────────
+*.log
+docker-compose.override.yml
+
+# ── Misc ─────────────────────────────────
+*.bak
+*.tmp
+*.cache
