@@ -12,7 +12,7 @@ Flow:
 
 import json
 import httpx
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode, unquote
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
@@ -39,7 +39,7 @@ GITHUB_CALLBACK_URL = f"{settings.BACKEND_URL}/api/auth/github/callback"
 async def github_login(role: str = Query("student")):
     """Return the GitHub OAuth authorization URL."""
     # Embed the selected role in the OAuth state parameter
-    state = quote(json.dumps({"role": role}))
+    state = json.dumps({"role": role})
     params = urlencode({
         "client_id": settings.GITHUB_CLIENT_ID,
         "scope": "read:user user:email repo",
@@ -103,7 +103,8 @@ async def github_callback(code: str = Query(...), state: str = Query(""), db: As
     requested_role = "student"
     if state:
         try:
-            state_data = json.loads(state)
+            decoded_state = unquote(state)
+            state_data = json.loads(decoded_state)
             if state_data.get("role") in ("student", "educator", "admin"):
                 requested_role = state_data["role"]
         except (json.JSONDecodeError, TypeError):
@@ -174,7 +175,7 @@ async def google_login(role: str = Query("student")):
         "https://www.googleapis.com/auth/drive.activity.readonly",
         "https://www.googleapis.com/auth/drive.metadata.readonly",
     ])
-    state = quote(json.dumps({"role": role}))
+    state = json.dumps({"role": role})
     params = urlencode({
         "client_id": settings.GOOGLE_CLIENT_ID,
         "redirect_uri": GOOGLE_CALLBACK_URL,
@@ -235,7 +236,8 @@ async def google_callback(code: str = Query(...), state: str = Query(""), db: As
     requested_role = "student"
     if state:
         try:
-            state_data = json.loads(state)
+            decoded_state = unquote(state)
+            state_data = json.loads(decoded_state)
             if state_data.get("role") in ("student", "educator", "admin"):
                 requested_role = state_data["role"]
         except (json.JSONDecodeError, TypeError):
