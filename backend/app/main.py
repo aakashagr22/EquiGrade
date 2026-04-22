@@ -2,12 +2,25 @@
 EquiGrade FastAPI application factory.
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config import get_settings
+from app.database import engine
+from app.models.models import Base
 from app.routers import auth, projects, integrations, scores
 
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Create all database tables on startup."""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
 
 def create_app() -> FastAPI:
@@ -17,6 +30,7 @@ def create_app() -> FastAPI:
         description="AI-powered group project contribution evaluator",
         docs_url="/docs",
         redoc_url="/redoc",
+        lifespan=lifespan,
     )
 
     # CORS

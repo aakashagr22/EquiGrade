@@ -4,6 +4,7 @@ import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, GitBranch, FileText, Loader2, CheckCircle2 } from "lucide-react";
+import { api } from "@/lib/api";
 
 const INTEGRATION_TYPES = [
   {
@@ -58,8 +59,7 @@ export default function ConnectIntegrationPage({
 
     setLoading(true);
     try {
-      // TODO: api.addIntegration(teamId, { type: selected, external_id: externalId })
-      await new Promise((r) => setTimeout(r, 1200));
+      await api.addIntegration(teamId, { type: selected, external_id: externalId.trim() });
       setSuccess(true);
       setTimeout(() => {
         router.push(`/educator/projects/${id}`);

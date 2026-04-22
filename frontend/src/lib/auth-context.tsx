@@ -29,27 +29,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       const me = await api.getMe();
       setUser(me);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("equigrade_user", JSON.stringify(me));
+      }
     } catch {
       setUser(null);
       api.clearToken();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("equigrade_user");
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    // Try to restore session from localStorage
-    const stored = typeof window !== "undefined"
-      ? localStorage.getItem("equigrade_user")
-      : null;
-
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch { /* ignore */ }
+    // On mount: check if we have a token in localStorage
+    // If so, validate it with the backend and restore the session
+    const token = api.getToken();
+    if (token) {
+      // We have a token — validate it by fetching the user profile
+      refreshUser();
+    } else {
+      // No token — try to load cached user for display, but mark as unauthenticated
+      const stored = typeof window !== "undefined"
+        ? localStorage.getItem("equigrade_user")
+        : null;
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+        } catch { /* ignore */ }
+      }
+      setLoading(false);
     }
-    setLoading(false);
-  }, []);
+  }, [refreshUser]);
 
   const login = (token: string, userData: User) => {
     api.setToken(token);
@@ -74,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!api.getToken(),
         login,
         logout,
         refreshUser,

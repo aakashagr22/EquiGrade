@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, FolderKanban } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -20,13 +21,13 @@ export default function NewProjectPage() {
     setLoading(true);
 
     try {
-      // TODO: Connect to API when backend is running
-      // const project = await api.createProject(form);
-      // router.push(`/educator/projects/${project.id}`);
-
-      // For now, simulate and redirect
-      await new Promise((r) => setTimeout(r, 1000));
-      router.push("/educator/projects");
+      const project = await api.createProject({
+        name: form.name,
+        description: form.description || undefined,
+        start_date: form.start_date || undefined,
+        end_date: form.end_date || undefined,
+      });
+      router.push(`/educator/projects/${project.id}`);
     } catch {
       setLoading(false);
     }

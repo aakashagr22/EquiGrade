@@ -12,31 +12,35 @@ function CallbackContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const code = searchParams.get("code");
-    const provider = searchParams.get("provider");
+    // The backend redirects here with ?token=xxx or ?error=xxx
+    const token = searchParams.get("token");
+    const errorMsg = searchParams.get("error");
 
-    if (!code) {
-      setError("No authorization code received");
+    if (errorMsg) {
+      setError(decodeURIComponent(errorMsg));
       return;
     }
 
-    const handleCallback = async () => {
-      try {
-        let response;
-        if (provider === "google") {
-          response = await api.googleCallback(code);
-        } else {
-          response = await api.githubCallback(code);
-        }
-        api.setToken(response.access_token);
+    if (!token) {
+      setError("No authentication token received");
+      return;
+    }
 
-        // Store user info
+    const handleLogin = async () => {
+      try {
+        // Store the JWT
+        api.setToken(token);
+
+        // Fetch user profile from backend
+        const user = await api.getMe();
+
+        // Persist user info
         if (typeof window !== "undefined") {
-          localStorage.setItem("equigrade_user", JSON.stringify(response.user));
+          localStorage.setItem("equigrade_user", JSON.stringify(user));
         }
 
         // Redirect based on role
-        if (response.user.role === "educator" || response.user.role === "admin") {
+        if (user.role === "educator" || user.role === "admin") {
           router.push("/educator");
         } else {
           router.push("/dashboard");
@@ -46,7 +50,7 @@ function CallbackContent() {
       }
     };
 
-    handleCallback();
+    handleLogin();
   }, [searchParams, router]);
 
   if (error) {

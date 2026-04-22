@@ -11,14 +11,21 @@ const GithubIcon = ({ className }: { className?: string }) => (
 );
 import Link from "next/link";
 
+const ROLES = [
+  { key: "student", label: "Student", desc: "View your scores" },
+  { key: "educator", label: "Educator", desc: "Manage projects" },
+  { key: "admin", label: "Admin", desc: "Full access" },
+];
+
 export default function LoginPage() {
   const [loading, setLoading] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("educator");
 
   const handleGitHubLogin = async () => {
     setLoading("github");
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/github`
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/github?role=${selectedRole}`
       );
       const data = await res.json();
       window.location.href = data.url;
@@ -31,7 +38,7 @@ export default function LoginPage() {
     setLoading("google");
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/google`
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/google?role=${selectedRole}`
       );
       const data = await res.json();
       window.location.href = data.url;
@@ -55,6 +62,31 @@ export default function LoginPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to home
         </Link>
+
+        {/* Role Selector */}
+        <div className="mb-6">
+          <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold mb-3 text-center">
+            Select your role
+          </p>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            {ROLES.map((r) => (
+              <button
+                key={r.key}
+                onClick={() => setSelectedRole(r.key)}
+                className={`glass-card p-3 text-xs cursor-pointer transition-all ${
+                  selectedRole === r.key
+                    ? "border-[var(--primary)] bg-[rgba(99,102,241,0.15)] ring-1 ring-[var(--primary)]"
+                    : "hover:border-[var(--border-default)]"
+                }`}
+              >
+                <div className="font-semibold text-[var(--primary-light)] mb-0.5">
+                  {r.label}
+                </div>
+                <div className="text-[var(--text-muted)]">{r.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Login Card */}
         <div className="glass-card p-8 gradient-border">
@@ -137,25 +169,6 @@ export default function LoginPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Role Info */}
-        <div className="mt-6 grid grid-cols-3 gap-3 text-center">
-          {[
-            { role: "Student", desc: "View your scores" },
-            { role: "Educator", desc: "Manage projects" },
-            { role: "Admin", desc: "Full access" },
-          ].map((r) => (
-            <div
-              key={r.role}
-              className="glass-card p-3 text-xs"
-            >
-              <div className="font-semibold text-[var(--primary-light)] mb-0.5">
-                {r.role}
-              </div>
-              <div className="text-[var(--text-muted)]">{r.desc}</div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

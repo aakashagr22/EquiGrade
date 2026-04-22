@@ -67,13 +67,119 @@ async def get_scores(team_id: UUID, user: User = Depends(get_current_user), db: 
 
 @router.post("/teams/{team_id}/analyze")
 async def trigger_analysis(team_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Trigger AI analysis and score computation for a team. In production, dispatches a Celery task."""
-    team_result = await db.execute(select(Team).where(Team.id == team_id))
+    """
+    Inline analysis: compute scores for all team members based on their
+    ContributionEvents. Uses AI analysis scores if available, otherwise
+    assigns a default quality score based on event count.
+    """
+    team_result = await db.execute(
+        select(Team).where(Team.id == team_id)
+    )
     team = team_result.scalar_one_or_none()
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
-    # TODO: dispatch Celery task: analyze_team.delay(str(team_id))
-    return {"message": "Analysis queued", "team_id": str(team_id)}
+
+    # Get the project for date range
+    from app.models.models import Project
+    proj_result = await db.execute(select(Project).where(Project.id == team.project_id))
+    project = proj_result.scalar_one_or_none()
+
+    project_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    project_end = datetime.now(timezone.utc)
+    if project:
+        if project.start_date:
+            project_start = datetime.combine(project.start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        if project.end_date:
+            project_end = datetime.combine(project.end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+
+    # Get team members
+    members_result = await db.execute(
+        select(TeamMember).where(TeamMember.team_id == team_id)
+    )
+    member_user_ids = [m.user_id for m in members_result.scalars().all()]
+
+    if not member_user_ids:
+        return {"message": "No team members found", "team_id": str(team_id)}
+
+    # Get all contribution events for this team
+    events_result = await db.execute(
+        select(ContributionEvent)
+        .join(Integration, ContributionEvent.integration_id == Integration.id)
+        .where(Integration.team_id == team_id)
+    )
+    all_events = events_result.scalars().all()
+
+    # Build member_data for scoring
+    member_data: dict[str, dict] = {}
+    for uid in member_user_ids:
+        user_events = [e for e in all_events if e.user_id == uid]
+        # Get AI scores if they exist
+        ai_scores = []
+        for evt in user_events:
+            ai_result = await db.execute(
+                select(AIAnalysis).where(AIAnalysis.contribution_event_id == evt.id)
+            )
+            ai = ai_result.scalar_one_or_none()
+            if ai and ai.quality_score:
+                ai_scores.append(float(ai.quality_score))
+
+        # If no AI scores, assign a default based on commit quality heuristics
+        if not ai_scores and user_events:
+            for evt in user_events:
+                # Simple heuristic: score based on event data
+                data = evt.event_data or {}
+                additions = data.get("additions", 0)
+                deletions = data.get("deletions", 0)
+                if additions + deletions > 100:
+                    ai_scores.append(75.0)
+                elif additions + deletions > 20:
+                    ai_scores.append(60.0)
+                else:
+                    ai_scores.append(40.0)
+
+        member_data[str(uid)] = {
+            "event_count": len(user_events),
+            "ai_scores": ai_scores,
+            "event_dates": [e.occurred_at for e in user_events if e.occurred_at],
+        }
+
+    # Compute scores
+    scores = compute_team_scores(member_data, project_start, project_end)
+
+    # Persist scores (upsert)
+    for s in scores:
+        uid = UUID(s.user_id)
+        existing = await db.execute(
+            select(ContributionScore).where(
+                ContributionScore.team_id == team_id,
+                ContributionScore.user_id == uid,
+            )
+        )
+        cs = existing.scalar_one_or_none()
+        if cs:
+            cs.quantity_score = s.quantity_score
+            cs.quality_score = s.quality_score
+            cs.consistency_score = s.consistency_score
+            cs.final_score = s.final_score
+            cs.contribution_pct = s.contribution_pct
+            cs.role_label = s.role_label
+            cs.computed_at = datetime.now(timezone.utc)
+        else:
+            cs = ContributionScore(
+                team_id=team_id,
+                user_id=uid,
+                quantity_score=s.quantity_score,
+                quality_score=s.quality_score,
+                consistency_score=s.consistency_score,
+                final_score=s.final_score,
+                contribution_pct=s.contribution_pct,
+                role_label=s.role_label,
+            )
+            db.add(cs)
+
+    await db.commit()
+    return {"message": f"Analysis complete: {len(scores)} members scored", "team_id": str(team_id)}
+
 
 
 @router.get("/users/{user_id}/contribution-timeline", response_model=UserTimeline)

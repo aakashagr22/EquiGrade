@@ -4,7 +4,7 @@
  */
 
 import type {
-  User, TokenResponse, Project, Team, Integration,
+  User, Project, Team, Integration,
   ContributionEvent, Score, Dashboard, FlagItem, UserTimeline,
 } from "./types";
 
@@ -68,26 +68,15 @@ class ApiClient {
   }
 
   // ── Auth ──────────────────────────────────────────
+  // OAuth login URLs — the backend returns a redirect URL; the frontend
+  // navigates the browser there. Callbacks are handled entirely by the
+  // backend (GET endpoints) which redirect back with a JWT.
   async getGitHubLoginUrl(): Promise<{ url: string }> {
     return this.fetch("/auth/github");
   }
 
   async getGoogleLoginUrl(): Promise<{ url: string }> {
     return this.fetch("/auth/google");
-  }
-
-  async githubCallback(code: string): Promise<TokenResponse> {
-    return this.fetch("/auth/github/callback", {
-      method: "POST",
-      body: JSON.stringify({ code }),
-    });
-  }
-
-  async googleCallback(code: string): Promise<TokenResponse> {
-    return this.fetch("/auth/google/callback", {
-      method: "POST",
-      body: JSON.stringify({ code }),
-    });
   }
 
   async getMe(): Promise<User> {
