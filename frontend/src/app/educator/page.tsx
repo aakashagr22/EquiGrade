@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  Zap, Users, BarChart3, FolderKanban, Settings,
-  LogOut, Bell, ChevronRight, Plus, GitBranch, FileText,
-  AlertTriangle, TrendingUp, Award, UserCheck,
+  Users, FolderKanban,
+  ChevronRight, Plus, AlertTriangle, TrendingUp,
+  Award, Bell, Activity, Clock,
 } from "lucide-react";
 
-// ── Demo Data (used when backend is not connected) ──
+// ── Demo Data ──
 const DEMO_PROJECTS = [
   { id: "1", name: "CS 301 — Software Engineering", team_count: 5, created_at: "2026-03-01", description: "Spring 2026 group projects" },
   { id: "2", name: "CS 201 — Data Structures", team_count: 3, created_at: "2026-02-15", description: "Algorithm design and implementation" },
@@ -45,99 +45,97 @@ export default function EducatorDashboard() {
   const [selectedProject] = useState(DEMO_PROJECTS[0]);
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Sidebar ── */}
-      <aside className="sidebar flex flex-col">
-        <div className="px-5 mb-8">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg font-bold gradient-text">EquiGrade</span>
-          </div>
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Educator Dashboard</h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {selectedProject.name}
+          </p>
         </div>
-
-        <nav className="flex-1 space-y-1">
-          <a href="#" className="sidebar-link active">
-            <BarChart3 className="w-5 h-5" /> Dashboard
-          </a>
-          <a href="#" className="sidebar-link">
-            <FolderKanban className="w-5 h-5" /> Projects
-          </a>
-          <a href="#" className="sidebar-link">
-            <Users className="w-5 h-5" /> Students
-          </a>
-          <a href="#" className="sidebar-link">
-            <GitBranch className="w-5 h-5" /> Integrations
-          </a>
-          <a href="#" className="sidebar-link">
-            <Settings className="w-5 h-5" /> Settings
-          </a>
-        </nav>
-
-        <div className="px-5 mt-auto">
-          <Link href="/login" className="sidebar-link text-red-400/70 hover:text-red-400">
-            <LogOut className="w-5 h-5" /> Sign Out
+        <div className="flex items-center gap-3">
+          <button className="btn btn-ghost relative">
+            <Bell className="w-5 h-5" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-[10px] flex items-center justify-center font-bold">
+              3
+            </span>
+          </button>
+          <Link href="/educator/projects/new" className="btn btn-primary">
+            <Plus className="w-4 h-4" /> New Project
           </Link>
         </div>
-      </aside>
+      </div>
 
-      {/* ── Main Content ── */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">Educator Dashboard</h1>
-            <p className="text-sm text-[var(--text-secondary)]">
-              {selectedProject.name}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="btn btn-ghost relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-[10px] flex items-center justify-center font-bold">3</span>
-            </button>
-            <button className="btn btn-primary">
-              <Plus className="w-4 h-4" /> New Project
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 stagger-children">
-          {[
-            { icon: FolderKanban, label: "Projects", value: DEMO_PROJECTS.length, color: "from-indigo-500/20 to-indigo-600/20" },
-            { icon: Users, label: "Total Students", value: DEMO_SCORES.length, color: "from-cyan-500/20 to-cyan-600/20" },
-            { icon: AlertTriangle, label: "Flags", value: DEMO_FLAGS.length, color: "from-red-500/20 to-red-600/20" },
-            { icon: Award, label: "Avg Score", value: Math.round(DEMO_SCORES.reduce((a, s) => a + s.final_score, 0) / DEMO_SCORES.length), color: "from-green-500/20 to-green-600/20" },
-          ].map((stat) => (
-            <div key={stat.label} className="glass-card stat-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                  <stat.icon className="w-5 h-5 text-[var(--text-primary)]" />
-                </div>
-                <TrendingUp className="w-4 h-4 text-green-400" />
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 stagger-children">
+        {[
+          { icon: FolderKanban, label: "Projects", value: DEMO_PROJECTS.length, color: "from-indigo-500/20 to-indigo-600/20" },
+          { icon: Users, label: "Total Students", value: DEMO_SCORES.length, color: "from-cyan-500/20 to-cyan-600/20" },
+          { icon: AlertTriangle, label: "Flags", value: DEMO_FLAGS.length, color: "from-red-500/20 to-red-600/20" },
+          { icon: Award, label: "Avg Score", value: Math.round(DEMO_SCORES.reduce((a, s) => a + s.final_score, 0) / DEMO_SCORES.length), color: "from-green-500/20 to-green-600/20" },
+        ].map((stat) => (
+          <div key={stat.label} className="glass-card stat-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
+                <stat.icon className="w-5 h-5 text-[var(--text-primary)]" />
               </div>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="text-xs text-[var(--text-muted)]">{stat.label}</div>
+              <TrendingUp className="w-4 h-4 text-green-400" />
             </div>
+            <div className="text-2xl font-bold">{stat.value}</div>
+            <div className="text-xs text-[var(--text-muted)]">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent Projects */}
+      <div className="glass-card p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold">Recent Projects</h2>
+          <Link href="/educator/projects" className="text-xs text-[var(--primary-light)] hover:underline">
+            View All →
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {DEMO_PROJECTS.map((project) => (
+            <Link
+              key={project.id}
+              href={`/educator/projects/${project.id}`}
+              className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-semibold text-sm group-hover:text-[var(--primary-light)] transition-colors">
+                  {project.name}
+                </h3>
+                <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:translate-x-1 transition-transform" />
+              </div>
+              <p className="text-xs text-[var(--text-muted)] mb-3">{project.description}</p>
+              <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3" /> {project.team_count} teams
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> {project.created_at}
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
+      </div>
 
-        {/* Scores Table */}
-        <div className="glass-card p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold">Team Alpha — Contribution Scores</h2>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                Last computed: April 20, 2026
-              </p>
-            </div>
-            <button className="btn btn-secondary text-xs">
-              Export CSV
-            </button>
+      {/* Scores Table */}
+      <div className="glass-card p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold">Team Alpha — Contribution Scores</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-1">
+              Last computed: April 20, 2026
+            </p>
           </div>
+          <button className="btn btn-secondary text-xs">Export CSV</button>
+        </div>
 
+        <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
               <tr>
@@ -166,25 +164,19 @@ export default function EducatorDashboard() {
                   </td>
                   <td>
                     <div className="flex items-center gap-2">
-                      <div className="progress-bar w-16">
-                        <div className="progress-fill" style={{ width: `${score.quantity_score}%` }} />
-                      </div>
+                      <div className="progress-bar w-16"><div className="progress-fill" style={{ width: `${score.quantity_score}%` }} /></div>
                       <span className="text-xs text-[var(--text-secondary)]">{score.quantity_score}</span>
                     </div>
                   </td>
                   <td>
                     <div className="flex items-center gap-2">
-                      <div className="progress-bar w-16">
-                        <div className="progress-fill" style={{ width: `${score.quality_score}%` }} />
-                      </div>
+                      <div className="progress-bar w-16"><div className="progress-fill" style={{ width: `${score.quality_score}%` }} /></div>
                       <span className="text-xs text-[var(--text-secondary)]">{score.quality_score}</span>
                     </div>
                   </td>
                   <td>
                     <div className="flex items-center gap-2">
-                      <div className="progress-bar w-16">
-                        <div className="progress-fill" style={{ width: `${score.consistency_score}%` }} />
-                      </div>
+                      <div className="progress-bar w-16"><div className="progress-fill" style={{ width: `${score.consistency_score}%` }} /></div>
                       <span className="text-xs text-[var(--text-secondary)]">{score.consistency_score}</span>
                     </div>
                   </td>
@@ -204,39 +196,39 @@ export default function EducatorDashboard() {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Flags Section */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <AlertTriangle className="w-5 h-5 text-yellow-400" />
-            <h2 className="text-lg font-semibold">Suspicious Behavior Flags</h2>
-          </div>
-
-          <div className="space-y-3 stagger-children">
-            {DEMO_FLAGS.map((flag, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
-              >
-                <div className={`w-2 h-2 rounded-full ${flag.severity === "high" ? "bg-red-400" : "bg-yellow-400"}`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{flag.user_name}</span>
-                    <span className={`text-xs font-semibold uppercase ${severityColors[flag.severity]}`}>
-                      {flag.severity}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)]">
-                    <span className="font-medium text-[var(--text-muted)]">{flag.flag_type}:</span>{" "}
-                    {flag.detail}
-                  </p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
-              </div>
-            ))}
-          </div>
+      {/* Flags Section */}
+      <div className="glass-card p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <AlertTriangle className="w-5 h-5 text-yellow-400" />
+          <h2 className="text-lg font-semibold">Suspicious Behavior Flags</h2>
         </div>
-      </main>
-    </div>
+
+        <div className="space-y-3 stagger-children">
+          {DEMO_FLAGS.map((flag, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
+            >
+              <div className={`w-2 h-2 rounded-full ${flag.severity === "high" ? "bg-red-400" : "bg-yellow-400"}`} />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-sm">{flag.user_name}</span>
+                  <span className={`text-xs font-semibold uppercase ${severityColors[flag.severity]}`}>
+                    {flag.severity}
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--text-muted)]">{flag.flag_type}:</span>{" "}
+                  {flag.detail}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
