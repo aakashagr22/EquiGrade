@@ -5,7 +5,7 @@ EquiGrade FastAPI application factory.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
-from app.routers import auth, projects, integrations, scores
+from app.routers import auth, projects, integrations, scores, institutions
 
 settings = get_settings()
 
@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
 
     # Routers
     app.include_router(auth.router, prefix="/api")
+    app.include_router(institutions.router, prefix="/api")
     app.include_router(projects.router, prefix="/api")
     app.include_router(integrations.router, prefix="/api")
     app.include_router(scores.router, prefix="/api")

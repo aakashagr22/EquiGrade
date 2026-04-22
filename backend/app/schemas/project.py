@@ -78,3 +78,18 @@ class IntegrationResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Institutions ────────────────────────────────────────
+
+class InstitutionCreate(BaseModel):
+    name: str
+    slug: str  # URL-friendly identifier
+
+
+class InstitutionResponse(BaseModel):
+    id: UUID
+    name: str
+    slug: str
+
+    model_config = {"from_attributes": True}

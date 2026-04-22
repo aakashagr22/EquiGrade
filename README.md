@@ -1,8 +1,33 @@
-# EquiGrade
+# EquiGrade - AI-Powered Fair Contribution Evaluation
+
+![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen) ![Version](https://img.shields.io/badge/Version-1.0.0--beta-blue)
 
 **AI-Powered Group Project Contribution Evaluator**
 
 EquiGrade replaces subjective peer reviews with objective, data-driven contribution analysis. It integrates with GitHub and Google Workspace, uses Gemini AI to evaluate quality, and produces fair, transparent scores for every team member.
+
+---
+
+## 🎯 The Problem
+
+Traditional group project grading is unfair:
+- ❌ All students get the same grade regardless of effort
+- ❌ Peer reviews are biased and subjective
+- ❌ Freeloaders rewarded equally
+- ❌ Hard workers demotivated
+
+**EquiGrade solves this with data + AI.**
+
+---
+
+## ✨ Our Solution
+
+✅ **Automatic Data Collection** - Real-time GitHub commits & Google Docs edits
+✅ **AI Analysis** - Gemini API evaluates code & writing quality  
+✅ **Fair Scoring** - 30% Quantity + 50% Quality + 20% Consistency
+✅ **Transparent** - Students see exactly how their score is calculated
+✅ **Red Flags** - Detects copy-paste, last-minute work
+✅ **Role Classification** - Leader / Contributor / Passive / Free-rider
 
 ---
 
@@ -11,13 +36,15 @@ EquiGrade replaces subjective peer reviews with objective, data-driven contribut
 ```
 ┌──────────────────┐     ┌──────────────────┐     ┌──────────────┐
 │  Next.js Frontend│────▶│  FastAPI Backend  │────▶│  PostgreSQL  │
-│  (Vercel)        │     │  (Render/Docker)  │     │  (Supabase)  │
+│  (Vercel)        │     │  (Render)         │     │  (Database)  │
 └──────────────────┘     └────────┬─────────┘     └──────────────┘
                                   │
                     ┌─────────────┼─────────────┐
                     ▼             ▼             ▼
               ┌──────────┐ ┌──────────┐ ┌──────────┐
               │ GitHub   │ │ Google   │ │ Gemini   │
+              │ Commits  │ │ Edits    │ │ AI       │
+              └──────────┘ └──────────┘ └──────────┘
               │ API      │ │ Drive API│ │ AI       │
               └──────────┘ └──────────┘ └──────────┘
 ```

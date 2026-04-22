@@ -22,6 +22,7 @@ from app.schemas.score import (
 )
 from app.middleware.auth_middleware import get_current_user, get_educator_user
 from app.services.scoring_service import compute_team_scores
+from app.workers.analysis_tasks import analyze_team as celery_analyze_team
 
 router = APIRouter(tags=["Contributions & Scores"])
 
@@ -67,13 +68,20 @@ async def get_scores(team_id: UUID, user: User = Depends(get_current_user), db: 
 
 @router.post("/teams/{team_id}/analyze")
 async def trigger_analysis(team_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Trigger AI analysis and score computation for a team. In production, dispatches a Celery task."""
+    """Trigger AI analysis and score computation for a team. Dispatches a Celery task."""
     team_result = await db.execute(select(Team).where(Team.id == team_id))
     team = team_result.scalar_one_or_none()
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
-    # TODO: dispatch Celery task: analyze_team.delay(str(team_id))
-    return {"message": "Analysis queued", "team_id": str(team_id)}
+    
+    # Dispatch Celery task (imported as celery_analyze_team to avoid naming conflict)
+    task = celery_analyze_team.delay(str(team_id))
+    
+    return {
+        "message": "Analysis queued",
+        "team_id": str(team_id),
+        "task_id": task.id,
+    }
 
 
 @router.get("/users/{user_id}/contribution-timeline", response_model=UserTimeline)
