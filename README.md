@@ -100,5 +100,4 @@ Key variables:
 
 ## 📄 License
 
-MIT Hello
-# EquiGrade
+MIT License
